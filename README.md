@@ -1,0 +1,2 @@
+# redish
+REDIS in Haskell
