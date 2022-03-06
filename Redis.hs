@@ -38,6 +38,8 @@ data Reply = Bulk (Maybe ByteString)
            | MultiBulk (Maybe [Reply])
            deriving (Eq, Show)
 
+-- Parsing reply to a command
+-- 
 parseReply :: Reply -> Maybe Command
 parseReply (MultiBulk (Just xs)) =
   case xs of
@@ -47,6 +49,12 @@ parseReply (MultiBulk (Just xs)) =
     _                                                 -> Just Unknown
 parseReply _ = Nothing
 
+-- Below uses attoparsec to perform the parsing
+-- 
+{-
+> parse replyParser "*2\r\n$3\r\nget\r\n$4\r\nname\r\n"
+> (MultiBulk (Just [(Bulk (Just "get")), (Bulk (Just "name"))]))
+-}
 replyParser :: Parser Reply
 replyParser = choice [bulk, multiBulk]
 
@@ -85,6 +93,12 @@ ok = "+OK\r\n"
 pong :: ByteString
 pong = "+Pong\r\n"
 
+{-
+ - Given a socket and a mutable database
+ - forkIO forks a new lightweight thread
+ - to parse and reply to the request.
+ - commandP
+-}
 sockHandler :: Socket -> TVar DB -> IO ()
 sockHandler sock db = do
     (conn, _) <- accept sock
@@ -111,6 +125,10 @@ runCommand handle (Just Unknown) _ =
   S.hPutStr handle $ S.concat ["-ERR ", "unknown command", crlf]
 runCommand _ Nothing _ = return ()
 
+{-
+ - Takes a reply and converts it into a command
+ - and runs it
+ -}
 commandProcessor :: Handle -> TVar DB -> IO ()
 commandProcessor handle db = do
   reply <- hGetReplies handle replyParser
@@ -130,6 +148,11 @@ updateValue fn x = atomically $ modifyTVar x fn
 getValue :: DB -> Key -> Value
 getValue db k = findWithDefault "null" k db
 
+{-
+ - Basic networking and calling the database
+ - sockHandler sock database
+ -- listen on socket any action call sockHandler
+-}
 main :: IO ()
 main = withSocketsDo $ do
     database <- atomically $ newTVar $ fromList [("__version__", version)]
