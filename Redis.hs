@@ -32,6 +32,8 @@ data Command = Get Key
              | Unknown
              deriving (Eq, Show)
 
+{- Bulk and MultiBulk for reply handling
+ -}
 data Reply = Bulk (Maybe ByteString)
            | MultiBulk (Maybe [Reply])
            deriving (Eq, Show)
@@ -116,6 +118,9 @@ commandProcessor handle db = do
   runCommand handle command db
   commandProcessor handle db
 
+{- Atomic read and update
+ - for DB
+ -}
 atomRead :: TVar a -> IO a
 atomRead = atomically . readTVar
 
