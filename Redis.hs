@@ -11,12 +11,21 @@ import Data.Attoparsec.ByteString.Char8 hiding (takeTill)
 import qualified Data.ByteString as S
 
 version :: ByteString
-version = "0.5.0"
+version = "0.1.0"
 
+{- type definitions
+ - Key. Value, DB
+ -}
 type Key   = ByteString
 type Value = ByteString
 type DB    = Map Key Value
 
+{- Command definitions
+ - Get with one param, 
+ - Set with two params, 
+ - Ping with no params
+ - Anything else maps to Unknown
+ -}
 data Command = Get Key
              | Set Key Value
              | Ping
