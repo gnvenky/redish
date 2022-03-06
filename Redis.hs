@@ -108,6 +108,10 @@ sockHandler sock db = do
     _ <- forkIO $ commandProcessor handle db
     sockHandler sock db
 
+{-
+ - runCommand: main command that runs everything
+ - Handles the Set, Get and Ping
+ -}
 runCommand :: Handle -> Maybe Command -> TVar DB -> IO ()
 runCommand handle (Just (Get key)) db = do
     m <- atomRead db
